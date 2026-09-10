@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>From My Phone To The World</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: system-ui, sans-serif;
+      background: #1a0d2e;
+      color: #fff;
+      padding: 24px;
+      line-height: 1.5;
+    }
+    h1 {
+      color: #f5a623;
+      font-size: 1.8rem;
+      margin-bottom: 4px;
+    }
+    .identity {
+      color: #d0c0e0;
+      margin-bottom: 4px;
+    }
+    .proof-line {
+      font-style: italic;
+      color: #b89ad8;
+      margin-bottom: 24px;
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    @media (min-width: 600px) {
+      .cards { grid-template-columns: 1fr 1fr; }
+    }
+    .card {
+      background: #2a1845;
+      border: 1px solid #4a2d70;
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .card h2 {
+      color: #f5a623;
+      font-size: 1rem;
+      margin-bottom: 8px;
+    }
+    .build-chain {
+      background: #2a1845;
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+      font-weight: bold;
+      letter-spacing: 1px;
+      margin-bottom: 24px;
+    }
+    footer {
+      text-align: center;
+      color: #8a7aa0;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>FROM MY PHONE TO THE WORLD</h1>
+  <p class="identity">Ubuntu Town Technology Apprentice - Mission 001</p>
+  <p class="proof-line">Built entirely from an Android phone</p>
+
+  <div class="cards">
+    <div class="card">
+      <h2>TERMINAL</h2>
+      <p>I learned to operate a command-line interface: navigating folders, creating files, and running installation commands directly on my phone.</p>
+    </div>
+    <div class="card">
+      <h2>GIT</h2>
+      <p>Source control lets me track every change to my code as a snapshot in time, so I can see history and never lose work.</p>
+    </div>
+    <div class="card">
+      <h2>GITHUB</h2>
+      <p>A remote host for my Git repository, so my code lives in the cloud and can be shared or deployed from anywhere.</p>
+    </div>
+    <div class="card">
+      <h2>CLOUDFLARE</h2>
+      <p>Connects my GitHub repository to a public URL, automatically rebuilding the live site whenever I push new code.</p>
+    </div>
+  </div>
+
+  <div class="build-chain">
+    PHONE -&gt; TERMUX -&gt; GIT -&gt; GITHUB -&gt; CLOUDFLARE -&gt; INTERNET
+  </div>
+
+  <footer>Build Your Town. Build Yourself.</footer>
+</body>
+</html>
+
