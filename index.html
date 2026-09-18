@@ -56,6 +56,103 @@
       letter-spacing: 1px;
       margin-bottom: 24px;
     }
+    /* Mission Log section */
+    .mission-log {
+      margin-bottom: 24px;
+    }
+    .mission-log h2 {
+      color: #f5a623;
+      font-size: 1.2rem;
+      margin-bottom: 12px;
+    }
+    .mission-log .log-state {
+      background: #2a1845;
+      border: 1px solid #4a2d70;
+      border-radius: 8px;
+      padding: 24px;
+      text-align: center;
+      color: #b89ad8;
+      font-style: italic;
+    }
+    .mission-log .log-state.error {
+      color: #f5a623;
+      font-style: normal;
+    }
+    .mission-log .log-state.error button {
+      margin-top: 12px;
+      background: #f5a623;
+      color: #1a0d2e;
+      border: none;
+      border-radius: 4px;
+      padding: 6px 14px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .mission-log .log-state.error button:hover {
+      opacity: 0.85;
+    }
+    .mission-card-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    @media (min-width: 600px) {
+      .mission-card-grid { grid-template-columns: 1fr 1fr; }
+    }
+    .mission-card {
+      background: #2a1845;
+      border: 1px solid #4a2d70;
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+    .mission-code {
+      font-family: monospace;
+      font-size: 0.85rem;
+      color: #f5a623;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .mission-title {
+      font-size: 0.95rem;
+      color: #d0c0e0;
+      margin-bottom: 8px;
+    }
+    .status-badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+    .status-completed {
+      background: #1a4a2a;
+      color: #6fcf97;
+    }
+    .status-in_progress {
+      background: #4a3514;
+      color: #f5a623;
+    }
+    .status-planned {
+      background: #2a2a35;
+      color: #8a8ab0;
+    }
+    .mission-proof {
+      margin-top: 8px;
+      font-size: 0.85rem;
+      color: #8a7aa0;
+    }
+    .mission-proof a {
+      color: #b89ad8;
+      word-break: break-all;
+    }
+    .mission-timing {
+      margin-top: 6px;
+      font-size: 0.8rem;
+      color: #6a5a80;
+    }
     footer {
       text-align: center;
       color: #8a7aa0;
@@ -92,6 +189,162 @@
   </div>
 
   <footer>Build Your Town. Build Yourself.</footer>
+
+  <section class="mission-log">
+    <h2>MY MISSION LOG</h2>
+    <div id="mission-log-state" class="log-state">
+      Loading mission log…
+    </div>
+    <div id="mission-log-cards" class="mission-card-grid" style="display:none;"></div>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script>
+    (function () {
+      var SUPABASE_URL = "https://aqwgduxatheikayigcym.supabase.co";
+      var SUPABASE_ANON_KEY = "sb_publishable_1NZYjCfFgHZIk-L4IGB6zg_8mibqfk1";
+
+      function statusBadgeClass(status) {
+        if (status === "COMPLETED") return "status-completed";
+        if (status === "IN_PROGRESS") return "status-in_progress";
+        return "status-planned";
+      }
+
+      function statusBadgeLabel(status) {
+        if (status === "COMPLETED") return "COMPLETED";
+        if (status === "IN_PROGRESS") return "IN_PROGRESS";
+        return "PLANNED";
+      }
+
+      function showLoading() {
+        var state = document.getElementById("mission-log-state");
+        state.textContent = "Loading mission log…";
+        state.className = "log-state";
+        document.getElementById("mission-log-cards").style.display = "none";
+      }
+
+      function showEmpty() {
+        var state = document.getElementById("mission-log-state");
+        state.textContent = "No missions recorded yet.";
+        state.className = "log-state";
+        document.getElementById("mission-log-cards").style.display = "none";
+      }
+
+      function showError(message, retry) {
+        var state = document.getElementById("mission-log-state");
+        state.innerHTML = "<p>Error loading mission log: " + message + "</p>";
+        state.className = "log-state error";
+        if (retry !== undefined) {
+          var btn = document.createElement("button");
+          btn.textContent = "Retry";
+          btn.onclick = retry;
+          state.appendChild(btn);
+        }
+        document.getElementById("mission-log-cards").style.display = "none";
+      }
+
+      function renderMissions(missions) {
+        var cardsContainer = document.getElementById("mission-log-cards");
+        var state = document.getElementById("mission-log-state");
+
+        if (!missions || missions.length === 0) {
+          showEmpty();
+          return;
+        }
+
+        state.textContent = "";
+        state.className = "log-state";
+        cardsContainer.style.display = "";
+
+        // Sort: IN_PROGRESS first, then most recent started_at, then by code
+        missions.sort(function (a, b) {
+          var aProg = a.status === "IN_PROGRESS" ? 0 : 1;
+          var bProg = b.status === "IN_PROGRESS" ? 0 : 1;
+          if (aProg !== bProg) return aProg - bProg;
+          var dA = (a.started_at || "").localeCompare(b.started_at || "");
+          if (dA !== 0) return dA < 0 ? 1 : -1; // most recent first
+          return (a.mission_code || "").localeCompare(b.mission_code || "");
+        });
+
+        missions.forEach(function (m) {
+          var card = document.createElement("div");
+          card.className = "mission-card";
+
+          var codeEl = document.createElement("div");
+          codeEl.className = "mission-code";
+          codeEl.textContent = m.mission_code;
+
+          var titleEl = document.createElement("div");
+          titleEl.className = "mission-title";
+          titleEl.textContent = m.title || m.mission_code;
+
+          var badge = document.createElement("span");
+          badge.className = "status-badge " + statusBadgeClass(m.status);
+          badge.textContent = statusBadgeLabel(m.status);
+
+          var right = document.createElement("div");
+          right.style.cssText = "float:right; margin-top:-22px;";
+          right.appendChild(badge);
+
+          // timing info
+          var timing = document.createElement("div");
+          timing.className = "mission-timing";
+          var parts = [];
+          if (m.started_at) {
+            var started = new Date(m.started_at);
+            if (!isNaN(started.getTime())) parts.push("Started " + started.toLocaleDateString());
+          }
+          if (m.completed_at) {
+            var completed = new Date(m.completed_at);
+            if (!isNaN(completed.getTime())) parts.push("Completed " + completed.toLocaleDateString());
+          }
+          timing.textContent = parts.join("  ·  ");
+
+          var proof = document.createElement("div");
+          proof.className = "mission-proof";
+          if (m.proof_url) {
+            var link = document.createElement("a");
+            link.href = m.proof_url;
+            link.textContent = m.proof_url;
+            link.target = "_blank";
+            link.rel = "noopener";
+            proof.appendChild(link);
+          } else {
+            proof.textContent = "No proof link attached.";
+          }
+
+          card.appendChild(codeEl);
+          card.appendChild(titleEl);
+          card.appendChild(right);
+          card.appendChild(timing);
+          card.appendChild(proof);
+          cardsContainer.appendChild(card);
+        });
+      }
+
+      function fetchMissions() {
+        showLoading();
+        var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        supabase
+          .from("missions")
+          .select("*")
+          .order("started_at", { ascending: false })
+          .then(function (result) {
+            if (result.error) {
+              showError(result.error.message, fetchMissions);
+              return;
+            }
+            renderMissions(result.data || []);
+          })
+          .catch(function (err) {
+            showError(err.message, fetchMissions);
+          });
+      }
+
+      fetchMissions();
+    })();
+  </script>
 </body>
 </html>
 
